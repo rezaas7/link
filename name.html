@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>سلام عزیزم</title>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --accent:#6c8efb; --accent-2:#9fb7ff; --glass:rgba(255,255,255,0.72);
+    --sand:#d9caa0; --muted:#6b7a8a;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0;font-family:'Vazirmatn',system-ui,-apple-system,Segoe UI,Roboto;direction:rtl}
+
+  .bg { position:fixed; inset:0; z-index:-3; overflow:hidden;
+    background: linear-gradient(120deg,#fffaf6 0%, #eef6ff 40%, #fff8f1 100%);
+    animation: bgShift 12s ease-in-out infinite alternate;
+  }
+  @keyframes bgShift{from{filter: hue-rotate(0deg)} to{filter: hue-rotate(12deg) saturate(1.05)}}
+
+  .wrap{min-height:100vh; display:flex;align-items:center;justify-content:center;padding:28px}
+  .card{
+    width:min(780px,96vw); max-width:780px; border-radius:18px; padding:36px;
+    background:linear-gradient(180deg, rgba(255,255,255,0.88), rgba(248,252,255,0.78));
+    box-shadow: 0 20px 60px rgba(18,30,60,0.12);
+    position:relative; overflow:visible;
+  }
+
+  h1{margin:0 0 10px; font-size:1.9rem; color:#263143; letter-spacing:0.2px}
+  .sub{color:var(--muted); margin-bottom:18px}
+
+  .controls{display:flex; gap:12px; align-items:center; justify-content:center; flex-wrap:wrap}
+  input[type="password"]{
+    width:360px; max-width:66vw; padding:14px 16px; border-radius:12px; border:1px solid #e3e7f2;
+    font-size:1rem; outline:none; transition:box-shadow .18s, transform .12s; background:transparent;
+    backdrop-filter: blur(2px);
+  }
+  input[type="password"]:focus{box-shadow:0 10px 30px rgba(108,142,251,0.12); transform:translateY(-2px)}
+
+  button{
+    padding:12px 18px; border-radius:12px; border:none; background:linear-gradient(180deg,var(--accent),var(--accent-2));
+    color:white; font-weight:700; cursor:pointer; box-shadow:0 8px 22px rgba(108,142,251,0.16);
+  }
+  button:active{transform:translateY(1px)}
+
+  .message{height:20px; margin-top:12px; text-align:center; color:#d23f4a; font-weight:600}
+
+  #linkBox{
+    margin-top:22px; display:inline-flex; gap:12px; align-items:center; padding:14px 18px; border-radius:14px;
+    background:linear-gradient(90deg, rgba(255,255,255,0.95), rgba(248,252,255,0.95));
+    box-shadow: 0 18px 40px rgba(13,28,65,0.06); opacity:0; transform:translateY(18px) scale(.98);
+    transition:all .85s cubic-bezier(.2,.9,.3,1); pointer-events:none;
+  }
+  #linkBox.show{opacity:1; transform:translateY(0) scale(1); pointer-events:auto}
+  .link{
+    color:#074ea6; font-weight:800; text-decoration:none; position:relative; overflow:hidden;
+    padding-right:6px;
+  }
+  .link::after{
+    content:''; position:absolute; inset:0; left:-120%; background:linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent);
+    transform:skewX(-12deg); transition:left .9s ease;
+  }
+  #linkBox.show .link::after{left:120%}
+
+  .sand{position:fixed; width:6px; height:6px; background:var(--sand); border-radius:50%; pointer-events:none; z-index:0; filter:blur(.3px)}
+  @keyframes rise{to{transform:translateY(-120vh) rotate(200deg) scale(.6); opacity:0}}
+
+  canvas#confetti{position:fixed; inset:0; pointer-events:none; z-index:5; opacity:0; transition:opacity .35s}
+
+  .transition-overlay{
+    position:fixed; inset:0; z-index:20; pointer-events:none; display:flex; align-items:center; justify-content:center;
+    background: radial-gradient(circle at center, rgba(255,255,255,0.0) 0%, rgba(255,255,255,0.0) 40%, rgba(0,0,0,0.0) 100%);
+    opacity:0; transition:opacity .28s ease;
+  }
+  .transition-overlay.active{opacity:1; pointer-events:auto}
+  .flash{
+    width:18vmax; height:18vmax; border-radius:50%; background: radial-gradient(circle, rgba(255,255,255,0.96), rgba(170,200,255,0.12));
+    transform: scale(.2); opacity:0.0; transition:transform .55s cubic-bezier(.2,.9,.3,1), opacity .35s;
+    box-shadow: 0 0 120px 40px rgba(140,170,255,0.14), 0 0 30px rgba(255,255,255,0.9) inset;
+  }
+  .flash.go{ transform: scale(1.5); opacity:1; transition-duration: .45s }
+
+  @media (max-width:420px){
+    input[type="password"]{width:200px}
+    h1{font-size:1.5rem}
+  }
+</style>
+</head>
+<body>
+  <div class="bg" aria-hidden="true"></div>
+
+  <div class="wrap">
+    <main class="card" role="main" aria-live="polite">
+      <h1 id="welcomeText">سلام عزیزم، خوش اومدی ✨</h1>
+      <div class="sub" id="hintText">فقط رمز رو وارد کن تا یه سورپرایز بیاد</div>
+
+      <div class="controls" id="controls">
+        <input id="passwordInput" type="password" inputmode="text" autocomplete="off" placeholder="رمز رو وارد کن..." aria-label="رمز" />
+        <button id="enterBtn" type="button" aria-label="ورود">ورود</button>
+      </div>
+
+      <div class="message" id="message" aria-hidden="true"></div>
+
+      <div id="linkBox" aria-hidden="true" role="region" aria-label="سورپرایز">
+        <a id="theLink" class="link" href="https://rezaas7.github.io/name/" rel="noopener noreferrer">لینک رو باز کن</a>
+        <div class="sparkle">✨</div>
+      </div>
+    </main>
+  </div>
+
+  <!-- صوت‌ها: shen برای ظاهر شدن لینک، jing برای لحظه‌ی انتقال به لینک -->
+  <audio id="shen" src="shen.mp3" preload="none"></audio>
+  <audio id="jing" src="jing.mp3" preload="none"></audio>
+
+  <canvas id="confetti" width="800" height="600" aria-hidden="true"></canvas>
+
+  <div class="transition-overlay" id="overlay" aria-hidden="true">
+    <div class="flash" id="flash"></div>
+  </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', ()=> {
+  const correct = 'reza';
+  const input = document.getElementById('passwordInput');
+  const btn = document.getElementById('enterBtn');
+  const msg = document.getElementById('message');
+  const linkBox = document.getElementById('linkBox');
+  const shen = document.getElementById('shen');
+  const jing = document.getElementById('jing');
+  const hint = document.getElementById('hintText');
+  const welcome = document.getElementById('welcomeText');
+  const controls = document.getElementById('controls');
+  const confettiCanvas = document.getElementById('confetti');
+  const overlay = document.getElementById('overlay');
+  const flash = document.getElementById('flash');
+  const theLink = document.getElementById('theLink');
+
+  btn.addEventListener('click', tryPass);
+  input.addEventListener('keydown', e => { if(e.key === 'Enter') tryPass(); });
+
+  function tryPass(){
+    const val = input.value.trim();
+    if(!val){ showMessage('لطفا رمز را وارد کن'); return; }
+    if(val === correct){
+      if(hint){ hint.style.transition = 'opacity .45s, transform .45s'; hint.style.opacity = 0; hint.style.transform = 'translateY(-8px)'; setTimeout(()=> hint.remove(), 480); }
+      welcome.style.transition = 'opacity .45s, transform .45s'; welcome.style.opacity = 0; welcome.style.transform = 'translateY(-6px)';
+      setTimeout(()=> welcome.remove(), 480);
+      controls.style.transition = 'opacity .35s'; controls.style.opacity = 0; setTimeout(()=> controls.remove(), 360);
+      showMessage('', true);
+
+      setTimeout(()=> {
+        linkBox.classList.add('show'); linkBox.setAttribute('aria-hidden','false');
+        // پخش shen هنگام ظاهر شدن لینک
+        try{ shen.currentTime = 0; shen.play().catch(()=>{}); }catch(e){}
+        createSand(44);
+        confettiBurst();
+      }, 420);
+    } else {
+      showMessage('رمز اشتباه است');
+      btn.animate([{transform:'translateY(0)'},{transform:'translateY(-6px)'},{transform:'translateY(0)'}],{duration:260,easing:'cubic-bezier(.2,.8,.3,1)'});
+    }
+  }
+
+  function showMessage(text, ok=false){
+    msg.textContent = text;
+    msg.style.color = ok ? '#2b8a4a' : '#d23f4a';
+    if(!text) msg.setAttribute('aria-hidden','true'); else msg.removeAttribute('aria-hidden');
+  }
+
+  function createSand(count){
+    for(let i=0;i<count;i++){
+      const s = document.createElement('div');
+      s.className = 'sand';
+      const size = 3 + Math.random()*7;
+      s.style.width = s.style.height = size + 'px';
+      s.style.left = (Math.random()*100) + 'vw';
+      s.style.top = (70 + Math.random()*20) + 'vh';
+      s.style.opacity = (0.35 + Math.random()*0.6).toFixed(2);
+      s.style.transform = 'translateY(0) rotate('+ (Math.random()*360) +'deg)';
+      s.style.animation = `rise ${3+Math.random()*4}s linear forwards`;
+      s.style.borderRadius = (Math.random()*50)+'%';
+      document.body.appendChild(s);
+      s.addEventListener('animationend', ()=> s.remove());
+    }
+  }
+
+  function confettiBurst(){
+    const c = confettiCanvas;
+    const ctx = c.getContext('2d');
+    let W = c.width = window.innerWidth;
+    let H = c.height = window.innerHeight;
+    c.style.opacity = 1;
+
+    const pieces = [];
+    const colors = ['#ffd166','#06d6a0','#118ab2','#ef476f','#8ecae6','#ffd7a8'];
+
+    for(let i=0;i<140;i++){
+      pieces.push({
+        x: W/2 + (Math.random()-0.5)*260,
+        y: H/2 + (Math.random()-0.5)*120,
+        vx: (Math.random()-0.5)*8,
+        vy: -6 - Math.random()*6,
+        r: 6+Math.random()*8,
+        color: colors[Math.floor(Math.random()*colors.length)],
+        rot: Math.random()*360,
+        vr: (Math.random()-0.5)*12
+      });
+    }
+
+    let t=0;
+    function frame(){
+      t++;
+      ctx.clearRect(0,0,W,H);
+      for(const p of pieces){
+        p.vy += 0.22; p.x += p.vx; p.y += p.vy; p.rot += p.vr;
+        ctx.save();
+        ctx.translate(p.x,p.y);
+        ctx.rotate(p.rot*Math.PI/180);
+        ctx.fillStyle = p.color;
+        ctx.fillRect(-p.r/2, -p.r/2, p.r, p.r);
+        ctx.restore();
+      }
+      if(t < 150) requestAnimationFrame(frame); else {
+        c.style.transition = 'opacity .6s ease'; c.style.opacity = 0;
+      }
+    }
+    frame();
+    window.addEventListener('resize', ()=>{ W = c.width = window.innerWidth; H = c.height = window.innerHeight; });
+  }
+
+  // جلوگیری از باز شدن تب جدید؛ افکت انتقال + پخش jing قبل از رفتن به آدرس
+  theLink.addEventListener('click', function(e){
+    e.preventDefault();
+    const url = this.getAttribute('href');
+
+    // overlay و flash فعال شوند
+    overlay.setAttribute('aria-hidden','false');
+    overlay.classList.add('active');
+    flash.classList.add('go');
+
+    // پخش jing به‌عنوان صدای انتقال (به‌خاطر کلیک کاربر اجازه پخش وجود دارد)
+    try{ jing.currentTime = 0; jing.play().catch(()=>{}); }catch(e){}
+
+    // ارتعاش مختصر برای حس فیزیکی
+    document.body.animate([{transform:'scale(1)'},{transform:'scale(0.998)'}],{duration:300,iterations:1});
+
+    // پس از اندکی صبر افکت کامل شده و سپس هدایت در همان صفحه انجام شود
+    setTimeout(()=> {
+      window.location.href = url;
+    }, 600); // 600ms تا jing و افکت دیده و شنیده شود
+  });
+
+  console.log('Enhanced welcome with jing loaded');
+});
+</script>
+</body>
+</html>
